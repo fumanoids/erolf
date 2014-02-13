@@ -1,0 +1,14 @@
+target remote localhost:2331
+
+# preamble
+monitor reset 0
+monitor speed 1000
+monitor flash device STM32F405RG
+
+# load the binary (was passed as argument to gdb)
+load
+
+# run the executable
+monitor reset 0
+monitor reset 6
+quit

@@ -1,0 +1,106 @@
+Partlist
+
+Exported from Erolf2.brd at 15 Aug 2013 12:00:02
+
+EAGLE Version 6.5.0 Copyright (c) 1988-2013 CadSoft
+
+Assembly variant: 
+
+Part                Value              Package         Library                 Position (mm)         Orientation
+
+
+############################# Kondensatoren
+
+9x
+C4                  2.2uF              C0603           rc-master               (10 14)               R90
+
+2x
+C6                  22pF               C0603           rc-master               (35 10)               MR180
+
+3x
+C8                  100nF              C0603           rc-master               (29 6)                MR0
+
+
+############################# Stecker
+
+6x
+CON_ODROID1                            04P             con-amp-quick           (3 11)                R90
+
+1x
+X3                  MINI-USB-32005-301 32005-301       con-cypressindustries   (5.33 23.48)          R0
+
+2x
+X1                  53398-06           53398-06        con-molex               (21.96 3.09)          R180
+
+1x
+X5                  53398-10           53398-10        con-molex               (42 5)                R0
+
+
+############################# Diskretes
+
+1x
+BLUBB                                  SOT223-4        texas                   (10.82 33.53)         MR270
+
+6x
+IC1                 TL331              DBV-R-PDSO-G5   linear                  (47 32)               MR270
+
+3x
+IC2                 MAX481CSA          SO08            maxim                   (47 22)               R270
+
+1x
+IC11                USB6B1             SO08            st-microelectronics     (10 23)               MR90
+
+2x
+P2_LED                                 CHIP-LED0805    adafruit                (29 29)               R0
+
+2x
+PROCESSOR_2         STM32-F405RB       LQFP-64         stm32                   (22 35)               R0
+
+3x
+Q1                  BSS123             SOT23           transistor-small-signal (40 38)               R0
+
+# D-FF
+1x
+U$7                                    DCV_R-PDSO-6    texas                   (41.01 32.41)         MR90
+
+# p-MOSFET
+1x
+U$6                 SI4459ADY          SO-8            vishay                  (46.01 38.23)         MR0
+
+############################# Widerstaende
+
+1x
+R3                  100k               R0603           divers                  (25 4)                MR180
+
+7x
+R33                 330                R0603           divers                  (38 7)                MR90
+
+6x
+R2                  1k                 R0603           divers                  (40 33)               R180
+
+10x
+R13                 10k                R0603           divers                  (43 42)               R0
+
+1x
+R16                 33kR               R0603           divers                  (38 43)               MR180
+
+1x
+RN1                 33kR               EXBS8V          resistor-dil            (35 47)               MR180
+
+4x
+RN2                 10k                EXBV4V          resistor-dil            (47 42)               R90
+
+
+############################# Misc
+
+1x
+U$2                 MICROSD            MICROSD         adafruit                (16 32)               MR180
+
+1x
+U$3                                    BUTTON          berlinunited            (10 35)               R270
+
+1x
+U$4                 MINI-IMU-9V2       PCB             miniIMU-9v2             (32 30)               R0
+
+1x
+Y1                  8MHz              CRYSTAL_4.9X1.8 microbuilder            (36 13)               R180

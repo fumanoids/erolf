@@ -1,0 +1,198 @@
+              README FOR THE EROLF HARD- AND SOFTWARE RELEASE
+            ===================================================
+
+             2014-02-13 FUmanoids' Erolf Hardware Release v2014
+
+          Copyright (c) 2014 FUmanoids / Freie Universität Berlin
+                            All rights reserved
+
+        For full license information, please refer to file LICENCE
+
+Links:
+       FUmanoids Homepage                           http://www.fumanoids.de
+       FUmanoids on Facebook              http://www.facebook.com/fumanoids
+       FUmanoids on Twitter                    http://twitter.com/fumanoids
+
+       RoboCup Homepage                              http://www.robocup.org
+       RoboCup Humanoid League Homepage          http://www.tzi.de/humanoid
+
+
+This is part of the code/hardware release of team FUmanoids, version 2014. 
+
+Our goal by releasing the source code and CAD files of components of our robot
+is to provide some insight in humanoid soccer robot development, allowing other
+teams to learn from our code and possibly our mistakes, but also to hopefully
+encourage them to do the same and release their code as well. Though RoboCup is
+a competition, it's also about research and finally to achieve our common goal -
+to win against FIFA in 2050 ...
+
+
+ 1. PROJECT STRUCTURE
+----------------------
+
+The FUmanoids team has developed several software applications as well as our
+own robots. The latter was developed internally and equipped with both
+commercially available and self-built electronics.
+
+This release addresses only the custom-built microcontroller board (named Erolf) 
+used in the FUmanoid robots.
+
+Neither a compiler, an SDK or CAD software is part of this package. In the
+section "Getting Started" you find a list of recommended software to modify or
+view the CAD files, to compile the software and to put the binaries onto the
+processors.
+ 
+
+ 1.1 Overview of the package
+-----------------------------
+
+The project's root directory is "erolf" (the board's name).
+
+The directories in the root directory are:
+
+ - bin      -- some useful scripts and programs for building the program and
+               documentation
+ - build    -- All binary files of the program go here. This directory will
+               be created during code compilation.
+ - doc      -- The documentation directory. Here you can find some 
+               documentation of the board. There are png files containing
+               the schematics and the layout.
+ - src      -- The actual source code.
+               Note: The essential parts of the software is pretty well
+               documented. Please consider this as a documentation 
+               directory as well.
+ - hardware -- Here you can find the CAD files for the PCB.
+
+
+ 2. THE EROLF PROJECT
+------------------------- 
+
+ 2.1 Getting Started
+-------------------------
+
+ 2.1.1 Software
+
+The software is written in C with two extensions in assembler
+(system_mutex_lock() and system_mutex_unlock()).
+
+A compiler for the target hardware is not part of this package but can be picked
+based on the user's preferences. We recommend using the arm-none-eabi-toolchain
+(including gcc, ld and gdb) which can be found here:
+
+                  https://launchpad.net/gcc-arm-embedded
+
+ 2.1.2 Hardware
+
+To view the schematics and layout of this project we recommend using "CadSoft
+EAGLE" which can be found at: http://www.cadsoftusa.com/
+
+ 2.1.3 Manufacturing
+
+The PCB can be manufactured by most commonly known PCB services. A partlist can
+be found in the folder where the schematics reside. But please double check the 
+partlist since we cannot guarantee its completeness.
+
+We chose every component on the board to be manually solderable. All you need is
+a steady hand.
+
+ 2.1.4 Other Prerequisites
+ 
+To flash the target a JTAG/SWD interface is needed.
+
+We recommend using a "JLink" from Segger which supports JTAG and SWD for
+flashing and debugging. Segger releases software acting as gdb-server and other
+tools for common operating systems  (Linux, Mac, Windows). 
+
+
+ 2.2 Compiling the Software
+---------------------------
+
+The build system is based on premake 4. We include a more recent binary version
+of premake4 than currently available in e.g. Ubuntu.. If you want the sourcecode
+of premake have a look at http://industriousone.com/premake. Premake is licenced
+under the terms of the BSD License.
+
+The common IDE used for development in team FUmanoids is Eclipse/CDT which
+is available at http://www.eclipse.org. Therefore we have the corresponding
+project files added to our repository, to give an easy start. You can build the
+code either by using Eclipse or by shell tools. Both ways are easy.
+Other IDEs or editors can of course be used.
+
+The build process generates two .elf files. One for each processor.
+
+ 2.2.1 Using Eclipse
+
+If you choose to use Eclipse click File->Import and in the opening window
+General->"Existing Project into Workspace" and choose the project's root
+directory. Then you can compile the debug or release version of the software.
+
+
+ 2.2.2 Using the shell tools
+
+You can simply run
+
+ ./bin/compile.sh arm [release/debug]
+
+to compile the code. This runs premake to generate the make-files and
+runs "make" with the appropriate targets afterwards.
+
+
+ 2.3 Flashing the target
+------------------------
+
+In order to flash and debug the target software a JTAG/SWD Interface is needed.
+Connect your debug interface to the processor you want to debug. For the pinning
+information please consider looking in the schematics and the pinout information
+of your JTAG/SWD interface.
+
+In case you use a "JLink" from Segger start the JLinkGDBServer with the
+parameter "-if swd" to use the Serial Wire Debug interface (similar to JTAG but
+uses less wires). The output should tell you that a Cortex-M4 was identified.
+If your debug interface cannot connect to the target doublecheck the power
+supply and the pinning between your debug interface and the connector on
+the PCB.
+
+After your GDB-server is running you can use the flash.sh script (in the bin/
+directory) to  flash the target. Use "./bin/flash.sh erolfP[1/2].elf".
+
+In case you want to debug the software you can use the command line:
+
+   run "arm-none-eabi-gdb"
+
+In the following prompt enter:
+
+   target remote localhost:2331
+   monitor reset 0
+   file erolfP[1/2].elf
+   load
+   monitor reset 0
+   continue
+
+In case you use Eclipse you can set up the "GDB Hardware Debugging" plugin for
+this as well.
+
+
+ 4. REFERENCES
+--------------
+
+The framework used in this software was developed as part of the FUmanoid
+project and is used in its power supply board as well (the project can be found
+at http://www.fumanoids.de). The Berlin United Racing Team incorporates a
+microcontroller board similar to the erolf which is operated by the framework as
+well.
+
+Many aspects of our work is described in the corresponding theses of our
+students, which are available online at http://www.fumanoids.de/publications,
+though most of them are in German.
+
+This software uses libopencm3 which can be found at libopencm3.org.
+Thank you very much for this project!
+
+ 5. CONTACT
+-----------
+
+We'd love to receive feedback, please feel free to contact us by email
+at info@fumanoids.de. For information about our team and ongoing progress,
+follow us on https://www.facebook.com/fumanoids, https://twitter.com/fumanoids
+and http://www.fumanoids.de.
+

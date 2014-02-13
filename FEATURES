@@ -1,0 +1,132 @@
+        FEATURE DESCRIPTION FOR THE EROLF HARD- AND SOFTWARE RELEASE
+            ===================================================
+
+             2014-02-13 FUmanoids' Erolf Hardware Release v2014
+
+          Copyright (c) 2014 FUmanoids / Freie Universität Berlin
+                            All rights reserved
+
+        For full license information, please refer to file LICENCE
+
+
+ 1. INTRODUCTION
+-----------------
+
+The communication to and from the servo motors used to be a major cause of
+trouble. The FUmanoid robots use Dynamixel servo motors which communicate
+via an RS485 interface. In order to increase the communication performance
+a realtime communication unit was developed.
+
+The following describes the major features of the board.
+
+
+ 2. PROCESSORS
+--------------
+
+There are two stm32f505 (ARM Cortex M4) processors embedded in the 
+board. The first processor - processor1 - is dedicated to the 
+communication to the motors.
+
+The second processor - processor 2 - is dedicated to processing the 
+IMU values but can be used for motion execution and planning as well 
+since the computation of the orientation leaves lots of resources free.
+
+For the documentation/manuals of the processors please consider visiting
+the manufacturers homepage (http://www.st.com/).
+
+
+ 3. COMMUNICATION TO THE MOTORS
+--------------------------------
+
+One processor is dedicated for the communication to the servo motors. It
+handles up to three transactions (read command and reply or write command)
+at the same time while processing those information. By using three RS485
+busses very high communication rates can be achieved (about 10000 operations
+per second max).
+
+Reading of values (eg. position, speed and torque) in the motors is done
+automatically in order to collect those data and to tranfer one single packet
+containing all motor values to a main computing unit. 
+
+When the processor receives a packet from the main computer containing values
+to write to the motors it schedules those write operations and processes them
+in a real time fashion.
+
+
+ 4. IMU
+--------
+
+The second processor is dedicated to an inertial measurement unit (IMU) and
+for data processing. An extended kalman filter is implemented which updates
+at about 1000Hz and distributes the board's orientation to the main computing
+unit at about 200Hz.
+
+The sensors used are a LSM303DLHC (accelerometer and magnetometer) and 
+a L3GD20 (angular rotation sensor). Documentation for the sensors can be
+found at the manufacturers homepage (http://www.st.com/)
+
+
+ 5. COMMUNICATION TO MAIN COMPUTING UNIT
+-----------------------------------------
+
+A main computing unit can be attached via a UART interface.
+
+The integrated level shifter allows all voltage levels from 1.8V to 5V on this
+interface with communication rates up to 1M Baud.
+
+A protocol for communication is already implemented inside the framework to
+deliver packets or messages in a really little-code-generating manner.
+
+
+ 6. SAFETY FUNCTIONS
+---------------------
+
+The most frequent cause of electrical failure in the motors happened when the
+voltage supply wire touched a data wire resulting in a overvoltage which
+destroyed most ICs connected to the data bus. Those events are hard to foresee
+or to prevent since the whole cabling of the robots has to be checked.
+
+To prevent any damage caused by such an event a power cutting mechanism is
+implemented in this board. Whenever a data wire carries more than a certain
+voltage (adjustable via Zenner-Diode) the supply voltage to the motors is cut
+off via a P-MOSFET. The power supply can be reenabled by writing a 1 into a
+d-FlipFlop but will be cut immediately when the overvoltage condition occurs
+again. 
+
+The delay between the occurence of the error condition and the cutting of the
+supply voltage is about 200ns.
+
+This safety feature can be disabled by software in case you do not need it or
+if you experience trouble with it.
+
+The electronic safety of the motors can be further enhanced when incorporating
+the FUmanoid's power supply board and further overvoltage-protection-boards
+(so called Schlückies).
+
+Those projects can be found at: http://www.fumanoids.de/hardware
+
+ 
+ 7. SD MEMORY
+--------------------------------
+
+There is a micro SD Card slot attached to processor 2 wich can be used
+to store motions for execution on the board itself.
+
+
+ 8. BUZZER
+--------------------------------
+
+A piezo buzzer can be used to generate sounds either in a wave generation
+fashion where two frequency profiles and frequencies can be added. 
+It is also possible to play souds stored on the SD Card.
+
+
+ 9. BUTTONS
+--------------------------------
+
+Up to five buttons can be attached to a connector for use as user input.
+You can even use Buttons with embedded LED which can be used for debug
+information or state signaling.
+
+Toggling of the LED does not affect the input capabilities of the buttons.
+

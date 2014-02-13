@@ -1,0 +1,136 @@
+/*
+ * L3GD20.c
+ *
+ *  Created on: Nov 28, 2012
+ *      Author: lutz
+ */
+
+
+#include <flawless/init/systemInitializer.h>
+#include <flawless/timer/swTimer.h>
+
+#include <flawless/core/msg_msgPump.h>
+#include <flawless/config/msgIDs.h>
+
+#include "L3GD20.h"
+
+#include <interfaces/i2cCommunication.h>
+#include <interfaces/gyroData.h>
+
+#define L3GD20_SCALE 250.f;
+
+MSG_PUMP_DECLARE_MESSAGE_BUFFER_POOL(gyroRaw, l3gd20_gyroDataRaw_t, 10, MSG_ID_GYRO_RAW_DATA)
+MSG_PUMP_DECLARE_MESSAGE_BUFFER_POOL(gyroProc, processedGyroData_t, 2, MSG_ID_GYRO_SCALED_DATA)
+
+static l3gd20_gyroDataRaw_t *g_curRxBuf = NULL;
+
+static void onNewRawGyroData(msgPump_MsgID_t id, const void *buffer);
+static void onNewRawGyroData(msgPump_MsgID_t id, const void *buffer)
+{
+	if ((MSG_ID_GYRO_RAW_DATA == id) &&
+		(NULL != buffer))
+	{
+		/* do post processing */
+		const l3gd20_gyroDataRaw_t *data = (const l3gd20_gyroDataRaw_t*) buffer;
+		processedGyroData_t processed;
+
+		processed.x = ((float)(*data)[0]) / L3GD20_SCALE;
+		processed.y = ((float)(*data)[1]) / L3GD20_SCALE;
+		processed.z = ((float)(*data)[2]) / L3GD20_SCALE;
+
+		msgPump_postMessage(MSG_ID_GYRO_SCALED_DATA, &processed);
+	}
+}
+
+static void gyroConfigDataCallback(uint8_t *receivedData,
+					uint8_t dataCnt,
+					i2c_slaveAddress_t device,
+					i2c_register_t subReg);
+static void gyroConfigDataCallback(uint8_t *receivedData,
+					uint8_t dataCnt,
+					i2c_slaveAddress_t device,
+					i2c_register_t subReg)
+{
+	UNUSED(receivedData);
+	UNUSED(dataCnt);
+	UNUSED(device);
+	UNUSED(subReg);
+}
+
+static void gyroDataCallback(uint8_t *receivedData,
+					uint8_t dataCnt,
+					i2c_slaveAddress_t device,
+					i2c_register_t subReg);
+static void gyroDataCallback(uint8_t *receivedData,
+					uint8_t dataCnt,
+					i2c_slaveAddress_t device,
+					i2c_register_t subReg)
+{
+	if ((sizeof(l3gd20_gyroDataRaw_t) == dataCnt) &&
+		(NULL != receivedData) &&
+		(L3GD20_DEVICE_ADRESS == device) &&
+		(L3GD20_REGISTER_OUT_X_L == subReg))
+	{
+		/* post the data */
+		msgPump_postMessage(MSG_ID_GYRO_RAW_DATA, receivedData);
+	}
+}
+
+static void pollData(void);
+static void pollData(void)
+{
+	/* get a buffer and pass it to the transfer */
+	if (NULL == g_curRxBuf)
+	{
+		bool success = msgPump_getFreeBuffer(MSG_ID_GYRO_RAW_DATA, (void**)&g_curRxBuf);
+		if (FALSE == success)
+		{
+			g_curRxBuf = NULL;
+		} else
+		{
+			/* initialize that buffer */
+			(*g_curRxBuf)[0] = 0;
+			(*g_curRxBuf)[1] = 0;
+			(*g_curRxBuf)[2] = 0;
+		}
+	}
+
+	if (NULL != g_curRxBuf)
+	{
+		/* get that */
+		bool transactSuccess = i2c_transact(L3GD20_DEVICE_ADRESS, L3GD20_REGISTER_OUT_X_L, NULL, 0, (uint8_t*)*g_curRxBuf, sizeof(*g_curRxBuf), &gyroDataCallback);
+		if (FALSE != transactSuccess)
+		{
+			/* forget the buffer we have just acquired */
+			g_curRxBuf = NULL;
+		}
+	}
+}
+
+static void L3GD20_setupSensor(void);
+static void L3GD20_setupSensor(void)
+{
+	/* setup the gyro by letting it enter the normal mode (PD bit set) */
+	static uint8_t txBuf[5];
+	static uint8_t rxBuf[5];
+	txBuf[0] = 0x0f; /* CTRL_REG1 with PD and Xen, Yen, Zen */
+	txBuf[1] = 0x00; /* CTRL_REG2 */
+	txBuf[2] = 0x00; /* CTRL_REG3 */
+	txBuf[3] = 0x00; /* CTRL_REG4 without BLE for little endian transmission */
+	txBuf[4] = 0x00; /* CTRL_REG5 */
+
+	i2c_transact(L3GD20_DEVICE_ADRESS, L3GD20_REGISTER_CTRL_REG1, txBuf, sizeof(txBuf), NULL, 0, NULL);
+	i2c_transact(L3GD20_DEVICE_ADRESS, L3GD20_REGISTER_CTRL_REG1, NULL, 0, rxBuf, sizeof(rxBuf), &gyroConfigDataCallback);
+}
+
+static void L3GD20_init(void);
+MODULE_INIT_FUNCTION(L3GD20, 9, L3GD20_init)
+static void L3GD20_init(void)
+{
+	L3GD20_setupSensor();
+	swTimer_registerOnTimer(&pollData, 100, false);
+
+	msgPump_registerOnMessage(MSG_ID_GYRO_RAW_DATA, &onNewRawGyroData);
+}
+
+
